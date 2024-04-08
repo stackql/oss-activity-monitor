@@ -1,0 +1,9 @@
+.env
+.git
+.gitignore
+Dockerfile
+README.md
+.stackql/
+stackql
+stackql-zip
+

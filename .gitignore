@@ -1,0 +1,9 @@
+keys/*.json
+apikeys.sh
+stackql-zip
+stackql-aws-cloud-shell.sh
+stackql-azure-cloud-shell.sh
+stackql-google-cloud-shell.sh
+stackql
+/.stackql
+.env
