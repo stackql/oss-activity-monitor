@@ -207,7 +207,7 @@ def main():
         total_repo_watchers = stackql.execute("SELECT COUNT(*) as count FROM mvw_github_repo_watchers")[0]['count']
         logger.debug(f"total repo watchers : {total_repo_watchers}")
         # send notification
-        if new_stargazers:
+        if new_repo_watchers:
             message = f"👀 {len(new_repo_watchers)} new repo watchers for {owner}/{repo} ({', '.join([watcher['login'] for watcher in new_repo_watchers])})\n\ntotal repo watchers : {total_repo_watchers}"
             send_notification(message, slack_icon_emoji=':eye:')
         else: 
