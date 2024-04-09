@@ -2,7 +2,7 @@
 
 Get real-time alerts in Slack or Discord for GitHub project activity.  
 
-IMAGE
+![OSS Monitor](images/oss-activity-monitor.png)
 
 This project uses [__stackql__](https://github.com/stackql/stackql) to perform real-time open source project activity monitoring, this includes real time notification of:
 
