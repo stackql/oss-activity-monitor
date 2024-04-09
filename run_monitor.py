@@ -19,8 +19,8 @@ logging.basicConfig(level=numeric_level,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# instantiate StackQL
-stackql = StackQL(backend_storage_mode="file")
+# instantiate StackQL - use stackql binary in container, maintain durable state for materialized views
+stackql = StackQL(download_dir="/srv/stackql", backend_storage_mode="file")
 
 def run_stackql_stmt(stmt):
     try:
@@ -201,7 +201,7 @@ AND c.owner = '%s' AND c.repo = '%s'
             logger.debug(f"total stargazers : {total_stargazers}")
             # send notification
             if new_stargazers:
-                message = f"⭐ {len(new_stargazers)} new stargazers for {owner}/{repo} ({', '.join([stargazer['login'] for stargazer in new_stargazers])})\ntotal stargazers : {total_stargazers}"
+                message = f"⭐ {len(new_stargazers)} new repo {'stargazer' if len(new_stargazers) == 1 else 'stargazers'} for {owner}/{repo} ({', '.join([stargazer['login'] for stargazer in new_stargazers])})\ntotal stargazers : {total_stargazers}"
                 send_notification(message)
             else: 
                 logger.debug("no new stargazers found")
@@ -228,7 +228,7 @@ AND c.owner = '%s' AND c.repo = '%s'
             logger.debug(f"total repo watchers : {total_repo_watchers}")
             # send notification
             if new_repo_watchers:
-                message = f"👀 {len(new_repo_watchers)} new repo watchers for {owner}/{repo} ({', '.join([watcher['login'] for watcher in new_repo_watchers])})\ntotal repo watchers : {total_repo_watchers}"
+                message = f"👀 {len(new_repo_watchers)} new repo {'watcher' if len(new_repo_watchers) == 1 else 'watchers'} for {owner}/{repo} ({', '.join([watcher['login'] for watcher in new_repo_watchers])})\ntotal repo watchers : {total_repo_watchers}"
                 send_notification(message)
             else: 
                 logger.debug("no new repo watchers found")
@@ -255,7 +255,7 @@ AND c.owner = '%s' AND c.repo = '%s'
             logger.debug(f"total repo forks : {total_repo_forks}")
             # send notification
             if new_repo_forks:
-                message = f"🍴 {len(new_repo_forks)} new repo forks for {owner}/{repo} ({', '.join([fork['login'] for fork in new_repo_forks])})\ntotal repo forks : {total_repo_forks}"
+                message = f"🍴 {len(new_repo_forks)} new repo {'fork' if len(new_repo_forks) == 1 else 'forks'} for {owner}/{repo} ({', '.join([fork['login'] for fork in new_repo_forks])})\ntotal repo forks : {total_repo_forks}"
                 send_notification(message)
             else:
                 logger.debug("no new repo forks found")
@@ -283,7 +283,7 @@ AND c.owner = '%s' AND c.repo = '%s'
             # send notification
             if new_repo_issues:
                 reporters = ', '.join([issue['reporter'] for issue in new_repo_issues])
-                message = f"📊 {len(new_repo_issues)} new repo issues for {owner}/{repo} (raised by {reporters})\ntotal repo issues : {total_repo_issues}"
+                message = f"📊 {len(new_repo_issues)} new repo {'issue' if len(new_repo_issues) == 1 else 'issues'} for {owner}/{repo} (raised by {reporters})\ntotal repo issues : {total_repo_issues}"
                 send_notification(message)
             else:
                 logger.debug("no new repo issues found")
@@ -310,7 +310,7 @@ AND c.username = '%s'
             logger.debug(f"total org followers : {total_org_followers}")
             # send notification
             if new_org_followers:
-                message = f"🙋 {len(new_org_followers)} new org followers for {owner} ({', '.join([follower['login'] for follower in new_org_followers])})\ntotal org followers : {total_org_followers}"
+                message = f"🙋 {len(new_org_followers)} new org {'follower' if len(new_org_followers) == 1 else 'followers'} for {owner} ({', '.join([follower['login'] for follower in new_org_followers])})\ntotal org followers : {total_org_followers}"
                 send_notification(message)
             else:
                 logger.debug("no new org followers found")
@@ -354,7 +354,7 @@ SELECT SUM(new_downloads) FROM (
                 asset_downloads = stackql.execute(diff_query)
                 for asset in asset_downloads:
                     if int(asset["new_downloads"]) > 0:
-                        send_notification(f"📦 new downloads for {asset['asset_name']}: {asset['new_downloads']}")
+                        send_notification(f"📦 {asset['new_downloads']} new GitHub release {'download' if int(asset['new_downloads']) == 1 else 'downloads'} for {asset['asset_name']}")
             # refresh state
             stackql.executeStmt("REFRESH MATERIALIZED VIEW mvw_github_release_asset_downloads")
 
@@ -387,7 +387,7 @@ ON 1=1
             new_downloads = stackql.execute(new_downloads_query)
             logger.debug(f"new homebrew downloads : {new_downloads[0]['new_downloads']}")
             if int(new_downloads[0]["new_downloads"]) > 0:
-                    message = f"🍺 new homebrew downloads for {formula_name} : {new_downloads[0]['new_downloads']}"
+                    message = f"🍺 {new_downloads[0]['new_downloads']} new homebrew {'download' if int(new_downloads[0]['new_downloads']) == 1 else 'downloads'} for {formula_name}"
                     send_notification(message)
             else:
                 logger.debug("no new homebrew downloads found")
