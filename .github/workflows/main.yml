@@ -1,0 +1,44 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-push-docker-image:
+    name: Build Docker image and push to repositories
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: stackqlactivitymonitor.azurecr.io
+          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+      - name: Build and push to Docker Hub, GitHub Container Registry, and Azure Container Registry
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          tags: |
+            stackql/oss-activity-monitor:latest
+            stackql/oss-activity-monitor:${{github.sha}}
+            stackqlactivitymonitor.azurecr.io/oss-activity-monitor:latest
+            stackqlactivitymonitor.azurecr.io/oss-activity-monitor:${{github.sha}}
+          push: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Image digest
+        run: echo ${{ steps.build-and-push.outputs.digest }}

@@ -8,6 +8,7 @@ repo = os.getenv("GITHUB_REPO")
 owner = os.getenv("GITHUB_REPO_OWNER")
 formula_name = os.getenv("HOMEBREW_FORMULA_NAME")
 sleep_interval = os.getenv("SLEEP_INTERVAL")
+backend_file_storage_location = os.getenv("BACKEND_FILE_STORAGE_LOCATION", "stackql.db")
 
 # set up logging
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -20,7 +21,7 @@ logging.basicConfig(level=numeric_level,
 logger = logging.getLogger(__name__)
 
 # instantiate StackQL - use stackql binary in container, maintain durable state for materialized views
-stackql = StackQL(download_dir="/srv/stackql", backend_storage_mode="file")
+stackql = StackQL(download_dir="/srv/stackql", backend_storage_mode="file", backend_file_storage_location=backend_file_storage_location)
 
 def run_stackql_stmt(stmt):
     try:
