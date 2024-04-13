@@ -58,6 +58,13 @@ def send_notification(message, slack_icon_emoji=":chart_with_upwards_trend:"):
     send_to_discord(message) if len(discord_webhook_url) > 0 else logger.debug("no discord webhook URL found. skipping...")
     logger.info(message.replace("\n", " "))
 
+def safe_int(value):
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        logger.error(f"❌ error in safe_int: {value} is not a valid integer")
+        return 0
+
 def main():
     logger.info("🚀 starting oss-activity-monitor...")
     logger.info(f"stackql version: {stackql.version}")
@@ -349,13 +356,14 @@ SELECT SUM(new_downloads) FROM (
 """ % diff_query
 
             total_new_downloads = stackql.execute(total_new_downloads_query)
-            logger.debug(f"total new downloads : {total_new_downloads[0]['new_downloads']}")
-            if int(total_new_downloads[0]["new_downloads"]) > 0:
-                # we have some new downloads
-                asset_downloads = stackql.execute(diff_query)
-                for asset in asset_downloads:
-                    if int(asset["new_downloads"]) > 0:
-                        send_notification(f"📦 {asset['new_downloads']} new GitHub release {'download' if int(asset['new_downloads']) == 1 else 'downloads'} for {asset['asset_name']}")
+            if total_new_downloads and total_new_downloads[0].get('new_downloads') is not None:
+                logger.debug(f"total new downloads : {total_new_downloads[0]['new_downloads']}")
+                if safe_int(total_new_downloads[0]["new_downloads"]) > 0:
+                    # we have some new downloads
+                    asset_downloads = stackql.execute(diff_query)
+                    for asset in asset_downloads:
+                        if safe_int(asset["new_downloads"]) > 0:
+                            send_notification(f"📦 {asset['new_downloads']} new GitHub release {'download' if int(asset['new_downloads']) == 1 else 'downloads'} for {asset['asset_name']}")
             # refresh state
             stackql.executeStmt("REFRESH MATERIALIZED VIEW mvw_github_release_asset_downloads")
 
@@ -386,12 +394,17 @@ JOIN mvw_homebrew_downloads mvw
 ON 1=1
 """
             new_downloads = stackql.execute(new_downloads_query)
-            logger.debug(f"new homebrew downloads : {new_downloads[0]['new_downloads']}")
-            if int(new_downloads[0]["new_downloads"]) > 0:
-                    message = f"🍺 {new_downloads[0]['new_downloads']} new homebrew {'download' if int(new_downloads[0]['new_downloads']) == 1 else 'downloads'} for {formula_name}"
+            if new_downloads and new_downloads[0].get('new_downloads') is not None:
+                logger.debug(f"new homebrew downloads : {new_downloads[0]['new_downloads']}")
+                if safe_int(new_downloads[0]["new_downloads"]) > 0:
+                    count = new_downloads[0]['new_downloads']
+                    message = f"🍺 {count} new homebrew {'download' if safe_int(count) == 1 else 'downloads'} for {formula_name}"
                     send_notification(message)
+                else:
+                    logger.debug("no new homebrew downloads found")
             else:
-                logger.debug("no new homebrew downloads found")
+                logger.error("Failed to retrieve new homebrew downloads or data is malformed.")
+
             # refresh state
             stackql.executeStmt("REFRESH MATERIALIZED VIEW mvw_homebrew_downloads")
 
