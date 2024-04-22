@@ -104,16 +104,16 @@ Then, you can deploy the container instance using the `az` command-line tool, th
 
 ```bash
 # replace with your variables....
-RESOURCE_GROUP="stackql-activity-monitor-rg"
+RESOURCE_GROUP="oss-activity-monitor-rg-prd"
 LOCATION="eastus"
 CONTAINER_NAME="activity-monitor-instance"
-ACR_NAME="stackqlactivitymonitor"
-STORAGE_ACCOUNT_NAME="stackqlactivitymonitor"
+ACR_NAME="ossactivitymonitorprd"
+STORAGE_ACCOUNT_NAME="ossactivitymonitorprd"
 IMAGE_NAME="$ACR_NAME.azurecr.io/activity-monitor:latest"
-ACR_USERNAME=stackqlactivitymonitor
-ACR_PASSWORD=xxxxxxxx
-LOG_ANALYTICS_WORKSPACE_NAME="activity-monitor-logs"
-FILE_SHARE_NAME=activitymonitorfileshare
+ACR_USERNAME=ossactivitymonitorprd
+ACR_PASSWORD=xxxxxx
+LOG_ANALYTICS_WORKSPACE_NAME="activity-monitor-logs-prd"
+FILE_SHARE_NAME=fileshareprd
 MOUNT_PATH=/mnt/azure
 
 # Read .env file and prepare environment variables for ACI
@@ -134,7 +134,7 @@ LOG_ANALYTICS_WORKSPACE_KEY=$(az monitor log-analytics workspace get-shared-keys
 --workspace-name $LOG_ANALYTICS_WORKSPACE_NAME \
 --query primarySharedKey -o tsv)
 # get the Workspace ID
-LOG_ANALYTICS_WORKSPACE_ID=$(az monitor log-analytics workspace show --resource-group $RESOURCE_GROUP --workspace-name $WORKSPACE_NAME --query "customerId" -o tsv)
+LOG_ANALYTICS_WORKSPACE_ID=$(az monitor log-analytics workspace show --resource-group $RESOURCE_GROUP --workspace-name $LOG_ANALYTICS_WORKSPACE_NAME --query "customerId" -o tsv)
 
 STORAGE_KEY=$(az storage account keys list \
 --resource-group $RESOURCE_GROUP \
@@ -166,3 +166,19 @@ az container create \
 --azure-file-volume-share-name $FILE_SHARE_NAME \
 --azure-file-volume-mount-path $MOUNT_PATH
 ```
+
+az container create \
+--resource-group $RESOURCE_GROUP \
+--name $CONTAINER_NAME \
+--image stackql/oss-activity-monitor \
+--environment-variables "${ENV_VARS[@]}" \
+--log-analytics-workspace "$LOG_ANALYTICS_WORKSPACE_ID" \
+--log-analytics-workspace-key $LOG_ANALYTICS_WORKSPACE_KEY \
+--azure-file-volume-account-name $STORAGE_ACCOUNT_NAME \
+--azure-file-volume-account-key $STORAGE_KEY \
+--azure-file-volume-share-name $FILE_SHARE_NAME \
+--azure-file-volume-mount-path $MOUNT_PATH
+
+
+az container list \
+--resource-group $RESOURCE_GROUP \

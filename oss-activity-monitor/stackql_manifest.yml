@@ -1,0 +1,70 @@
+version: 1
+name: "oss-activity-monitor"
+description: description for "oss-activity-monitor"
+providers:
+  - azure
+globals:
+  - name: subscription_id
+    description: azure subscription id
+    value: "{{ vars.AZURE_SUBSCRIPTION_ID }}"
+  - name: location
+    value: eastus
+  - name: resource_group_name_base
+    value: "oss-activity-monitor-rg"
+resources:
+  - name: resource_group
+    description: azure resource group for activity monitor app
+    props:
+      - name: resource_group_name
+        description: azure resource group name
+        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
+  - name: storage_account
+    description: azure storage account for activity monitor app
+    props:
+      - name: storage_account_name
+        value: "ossactivitymonitor{{ globals.stack_env }}"
+      - name: resource_group_name
+        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
+      - name: storage_kind
+        value: "StorageV2"
+      - name: storage_sku
+        value: 
+          name: "Standard_LRS"
+          tier: "Standard"
+  - name: container_registry
+    description: container registry for activity monitor app
+    props:
+      - name: container_registry_name
+        value: "ossactivitymonitor{{ globals.stack_env }}"
+      - name: admin_user_enabled
+        value: true
+      - name: resource_group_name
+        description: azure resource group name
+        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
+      - name: container_registry_sku
+        value: 
+          name: "Standard"
+          tier: "Standard" 
+  - name: log_analytics_workspace
+    props:
+      - name: workspace_name
+        value: "activity-monitor-logs-{{ globals.stack_env }}"
+      - name: resource_group_name
+        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
+  - name: file_share
+    props:
+      - name: file_share_name
+        value: "fileshare{{ globals.stack_env }}"
+      - name: storage_account_name
+        value: "ossactivitymonitor{{ globals.stack_env }}"
+      - name: resource_group_name
+        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
+      - name: file_share_properties
+        value:
+          accessTier: "TransactionOptimized"
+          enabledProtocols: "SMB"
+          shareQuota: 5120
+  - name: container_instance
+    props:
+      - name: file_share_name
+        value: "fileshare{{ globals.stack_env }}"

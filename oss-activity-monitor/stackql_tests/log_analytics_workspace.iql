@@ -1,0 +1,12 @@
+/*+ preflight */
+SELECT COUNT(*) as count FROM azure.log_analytics.workspaces
+WHERE subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+AND workspaceName = '{{ workspace_name }}'
+
+/*+ postdeploy, retries=5, retry_delay=5 */
+SELECT COUNT(*) as count FROM azure.log_analytics.workspaces
+WHERE subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+AND workspaceName = '{{ workspace_name }}'
+AND location = '{{ location }}'

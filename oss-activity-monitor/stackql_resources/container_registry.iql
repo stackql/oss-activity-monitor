@@ -1,0 +1,22 @@
+/*+ create */
+INSERT INTO azure.container_registry.registries(
+  registryName,
+  resourceGroupName,
+  subscriptionId,
+  data__sku,
+  data__location,
+  data__properties
+)
+SELECT
+  '{{ container_registry_name }}',
+  '{{ resource_group_name }}',
+  '{{ subscription_id }}',
+  '{{ container_registry_sku }}',
+  '{{ location }}',
+  '{ "adminUserEnabled": {{ admin_user_enabled | lower }} }'
+
+/*+ delete */
+DELETE FROM azure.container_registry.registries
+WHERE registryName = '{{ container_registry_name }}'
+AND resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}'

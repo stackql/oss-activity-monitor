@@ -1,0 +1,16 @@
+/*+ preflight */
+SELECT COUNT(*) as count FROM azure.container_registry.registries
+WHERE registryName = '{{ container_registry_name }}'
+AND subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+
+/*+ postdeploy, retries=5, retry_delay=5 */
+SELECT 
+COUNT(*) as count
+FROM azure.container_registry.registries
+WHERE registryName = '{{ container_registry_name }}'
+AND subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+AND JSON_EXTRACT(properties, '$.adminUserEnabled') = true
+AND JSON_EXTRACT(sku, '$.name') = 'Standard'
+AND JSON_EXTRACT(sku, '$.tier') = 'Standard'

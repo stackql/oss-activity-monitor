@@ -1,0 +1,15 @@
+/*+ preflight */
+SELECT COUNT(*) as count FROM azure.storage.file_shares
+WHERE shareName = '{{ file_share_name }}'
+AND accountName = '{{ storage_account_name }}'
+AND resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}'
+
+/*+ postdeploy, retries=5, retry_delay=5 */
+SELECT COUNT(*) as count FROM azure.storage.file_shares
+WHERE shareName = '{{ file_share_name }}'
+AND accountName = '{{ storage_account_name }}'
+AND resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}'
+AND JSON_EXTRACT(properties, '$.accessTier') = 'TransactionOptimized'
+AND JSON_EXTRACT(properties, '$.shareQuota') = 5120

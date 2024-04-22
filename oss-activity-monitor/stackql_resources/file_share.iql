@@ -1,0 +1,22 @@
+/*+ create */
+INSERT INTO azure.storage.file_shares(
+  accountName,
+  resourceGroupName,
+  shareName,
+  subscriptionId,
+  data__properties
+)
+SELECT
+    '{{ storage_account_name }}',
+    '{{ resource_group_name }}',
+    '{{ file_share_name }}',
+    '{{ subscription_id }}',
+    '{{ file_share_properties }}'
+;
+
+/*+ delete */
+DELETE FROM azure.storage.file_shares
+WHERE shareName = '{{ file_share_name }}'
+AND accountName = '{{ storage_account_name }}'
+AND resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}'

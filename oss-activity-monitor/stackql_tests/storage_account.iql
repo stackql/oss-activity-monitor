@@ -1,0 +1,16 @@
+/*+ preflight */
+SELECT COUNT(*) as count FROM azure.storage.accounts
+WHERE SPLIT_PART(SPLIT_PART(JSON_EXTRACT(properties, '$.primaryEndpoints.blob'), '//', 2), '.', 1) = '{{ storage_account_name }}'
+AND subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+
+/*+ postdeploy, retries=5, retry_delay=5 */
+SELECT 
+COUNT(*) as count
+FROM azure.storage.accounts
+WHERE SPLIT_PART(SPLIT_PART(JSON_EXTRACT(properties, '$.primaryEndpoints.blob'), '//', 2), '.', 1) = '{{ storage_account_name }}'
+AND subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+AND kind = '{{ storage_kind }}'
+AND JSON_EXTRACT(sku, '$.name') = 'Standard_LRS'
+AND JSON_EXTRACT(sku, '$.tier') = 'Standard'

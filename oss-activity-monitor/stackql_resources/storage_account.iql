@@ -1,0 +1,22 @@
+/*+ create */
+INSERT INTO azure.storage.accounts(
+   accountName,
+   resourceGroupName,
+   subscriptionId,
+   data__location,
+   data__kind,
+   data__sku
+)
+SELECT
+   '{{ storage_account_name }}',
+   '{{ resource_group_name }}',
+   '{{ subscription_id }}',
+   '{{ location }}',
+   '{{ storage_kind }}',
+   '{{ storage_sku }}'
+
+/*+ delete */
+DELETE FROM azure.storage.accounts
+WHERE accountName = '{{ storage_account_name }}' 
+AND resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}'

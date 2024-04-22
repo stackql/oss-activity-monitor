@@ -1,0 +1,18 @@
+/*+ createorupdate */
+INSERT INTO azure.log_analytics.workspaces(
+  workspaceName,
+  resourceGroupName,
+  subscriptionId,
+  data__location
+)
+SELECT
+    '{{ workspace_name }}',
+    '{{ resource_group_name }}',
+    '{{ subscription_id }}',
+    '{{ location }}'
+
+/*+ delete */
+DELETE FROM azure.log_analytics.workspaces
+WHERE resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}'
+AND workspaceName = '{{ workspace_name }}'
