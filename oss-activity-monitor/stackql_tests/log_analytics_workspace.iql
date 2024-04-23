@@ -10,3 +10,14 @@ WHERE subscriptionId = '{{ subscription_id }}'
 AND resourceGroupName = '{{ resource_group_name }}'
 AND workspaceName = '{{ workspace_name }}'
 AND location = '{{ location }}'
+
+/*+ exports */
+SELECT 
+JSON_EXTRACT(w.properties, '$.customerId') as log_analytics_workspace_id,
+s.primarySharedKey as log_analytics_workspace_key
+FROM azure.log_analytics.workspaces w
+JOIN azure.log_analytics.shared_keys_shared_keys s
+ON w.subscriptionId = s.subscriptionId
+WHERE subscriptionId = '631d1c6d-2a65-43e7-93c2-688bfe4e1468'
+AND resourceGroupName = 'oss-activity-monitor-rg-prd'
+AND workspaceName = 'activity-monitor-logs-prd'

@@ -14,3 +14,10 @@ AND resourceGroupName = '{{ resource_group_name }}'
 AND kind = '{{ storage_kind }}'
 AND JSON_EXTRACT(sku, '$.name') = 'Standard_LRS'
 AND JSON_EXTRACT(sku, '$.tier') = 'Standard'
+
+/*+ exports, retries=5, retry_delay=5 */
+select json_extract(keys, '$[0].value') as storage_account_key 
+from azure.storage.accounts_keys 
+WHERE resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}' 
+AND accountName = '{{ storage_account_name }}'

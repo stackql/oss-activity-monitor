@@ -9,56 +9,51 @@ globals:
     value: "{{ vars.AZURE_SUBSCRIPTION_ID }}"
   - name: location
     value: eastus
-  - name: resource_group_name_base
-    value: "oss-activity-monitor-rg"
+  - name: resource_group_name
+    value: "oss-activity-monitor-rg-{{ globals.stack_env }}"    
+  - name: file_share_name
+    value: "fileshare{{ globals.stack_env }}"
+  - name: storage_account_name
+    value: "ossactivitymonitor{{ globals.stack_env }}"
+  - name: app_log_level
+    value: "{{ vars.LOG_LEVEL }}"
+  - name: app_sleep_interval
+    value: "{{ vars.SLEEP_INTERVAL }}"
+  - name: app_github_repo
+    value: "{{ vars.GITHUB_REPO }}"
+  - name: app_github_repo_owner
+    value: "{{ vars.GITHUB_REPO_OWNER }}"
+  - name: app_homebrew_formula_name
+    value: "{{ vars.HOMEBREW_FORMULA_NAME }}"
+  - name: app_stackql_github_username
+    value: "{{ vars.STACKQL_GITHUB_USERNAME }}"
+  - name: app_stackql_github_password
+    value: "{{ vars.STACKQL_GITHUB_PASSWORD }}"
+  - name: app_slack_webhook_url
+    value: "{{ vars.SLACK_WEBHOOK_URL }}"
+  - name: app_discord_webhook_url
+    value: "{{ vars.DISCORD_WEBHOOK_URL }}"   
 resources:
   - name: resource_group
     description: azure resource group for activity monitor app
-    props:
-      - name: resource_group_name
-        description: azure resource group name
-        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
+    props: []
   - name: storage_account
     description: azure storage account for activity monitor app
     props:
       - name: storage_account_name
         value: "ossactivitymonitor{{ globals.stack_env }}"
-      - name: resource_group_name
-        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
       - name: storage_kind
         value: "StorageV2"
       - name: storage_sku
         value: 
           name: "Standard_LRS"
           tier: "Standard"
-  - name: container_registry
-    description: container registry for activity monitor app
-    props:
-      - name: container_registry_name
-        value: "ossactivitymonitor{{ globals.stack_env }}"
-      - name: admin_user_enabled
-        value: true
-      - name: resource_group_name
-        description: azure resource group name
-        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
-      - name: container_registry_sku
-        value: 
-          name: "Standard"
-          tier: "Standard" 
   - name: log_analytics_workspace
     props:
       - name: workspace_name
         value: "activity-monitor-logs-{{ globals.stack_env }}"
-      - name: resource_group_name
-        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
   - name: file_share
     props:
-      - name: file_share_name
-        value: "fileshare{{ globals.stack_env }}"
-      - name: storage_account_name
-        value: "ossactivitymonitor{{ globals.stack_env }}"
-      - name: resource_group_name
-        value: "{{ globals.resource_group_name_base }}-{{ globals.stack_env }}"
       - name: file_share_properties
         value:
           accessTier: "TransactionOptimized"
@@ -66,5 +61,56 @@ resources:
           shareQuota: 5120
   - name: container_instance
     props:
-      - name: file_share_name
-        value: "fileshare{{ globals.stack_env }}"
+      - name: container_group_name
+        value: "activity-monitor-instance"
+      - name: container_group_properties
+        value:
+          restartPolicy: "Always"
+          sku: "Standard"
+          diagnostics:
+            logAnalytics:
+              workspaceId: "{{ log_analytics_workspace_id }}"
+              workspaceKey: "{{ log_analytics_workspace_key }}"
+          osType: Linux
+          volumes:
+            - azureFile:
+                shareName: "{{ file_share_name }}"
+                storageAccountName: "{{ storage_account_name }}"
+                storageAccountKey: "{{ storage_account_key }}"
+              name: azurefile
+          containers:
+            - name: activity-monitor-instance
+              properties:
+                configMap:
+                  keyValuePairs: {}
+                environmentVariables:
+                  - name: LOG_LEVEL
+                    value: "{{ app_log_level }}"
+                  - name: SLEEP_INTERVAL
+                    value: "{{ app_sleep_interval }}"
+                  - name: GITHUB_REPO
+                    value: "{{ app_github_repo }}"
+                  - name: GITHUB_REPO_OWNER
+                    value: "{{ app_github_repo_owner }}"
+                  - name: HOMEBREW_FORMULA_NAME
+                    value: "{{ app_homebrew_formula_name }}"
+                  - name: STACKQL_GITHUB_USERNAME
+                    value: "{{ app_stackql_github_username }}"
+                  - name: STACKQL_GITHUB_PASSWORD
+                    value: "{{ app_stackql_github_password }}"
+                  - name: SLACK_WEBHOOK_URL
+                    value: "{{ app_slack_webhook_url }}"
+                  - name: DISCORD_WEBHOOK_URL
+                    value: "{{ app_discord_webhook_url }}"                    
+                  - name: BACKEND_FILE_STORAGE_LOCATION
+                    value: "/mnt/azure/stackql.db"
+                image: stackql/oss-activity-monitor
+                ports: []
+                resources:
+                  requests:
+                    cpu: 1
+                    memoryInGB: 1.5
+                volumeMounts:
+                  - mountPath: "/mnt/azure"
+                    name: azurefile
+

@@ -1,0 +1,13 @@
+/*+ preflight */
+SELECT COUNT(*) as count FROM azure.container_instances.container_groups
+WHERE subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+AND containerGroupName = '{{ container_group_name }}'
+
+
+/*+ postdeploy, retries=5, retry_delay=5 */
+SELECT COUNT(*) as count FROM azure.container_instances.container_groups
+WHERE subscriptionId = '{{ subscription_id }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+AND containerGroupName = '{{ container_group_name }}'
+AND JSON_EXTRACT(properties, '$.provisioningState') = 'Succeeded'

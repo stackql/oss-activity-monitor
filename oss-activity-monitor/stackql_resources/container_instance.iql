@@ -1,0 +1,20 @@
+/*+ createorupdate */
+INSERT INTO azure.container_instances.container_groups(
+  containerGroupName,
+  resourceGroupName,
+  subscriptionId,
+  data__location,
+  data__properties
+)
+SELECT
+  '{{ container_group_name }}',
+  '{{ resource_group_name }}',
+  '{{ subscription_id }}',
+  '{{ location }}',
+  '{{ container_group_properties }}'
+
+/*+ delete */
+DELETE FROM azure.container_instances.container_groups
+WHERE containerGroupName = '{{ container_group_name }}'
+AND resourceGroupName = '{{ resource_group_name }}' 
+AND subscriptionId = '{{ subscription_id }}'
