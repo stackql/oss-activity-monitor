@@ -1,0 +1,12 @@
+/*+ preflight */
+SELECT COUNT(*) as count FROM github.actions.variables
+WHERE owner = '{{ github_repo_owner }}' 
+AND repo = '{{ github_repo_name }}'
+AND name = '{{ github_repo_variable_name }}'
+
+/*+ postdeploy, retries=5, retry_delay=5 */
+SELECT COUNT(*) as count FROM github.actions.variables
+WHERE owner = '{{ github_repo_owner }}' 
+AND repo = '{{ github_repo_name }}'
+AND name = '{{ github_repo_variable_name }}'
+AND value = '{{ acr_url }}'

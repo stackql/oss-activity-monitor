@@ -1,0 +1,6 @@
+/*+ exports */
+select  
+key_id as github_public_key_id,
+key as github_public_key
+from github.actions.public_keys 
+where owner = '{{ github_repo_owner }}' and repo = '{{ github_repo_name }}'

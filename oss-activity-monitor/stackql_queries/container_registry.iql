@@ -14,3 +14,15 @@ AND resourceGroupName = '{{ resource_group_name }}'
 AND JSON_EXTRACT(properties, '$.adminUserEnabled') = true
 AND JSON_EXTRACT(sku, '$.name') = 'Standard'
 AND JSON_EXTRACT(sku, '$.tier') = 'Standard'
+
+/*+ exports, retries=5, retry_delay=5 */
+SELECT
+c.username as acr_username,
+JSON_EXTRACT(c.passwords, '$[0].value') as acr_password,
+JSON_EXTRACT(r.properties, '$.loginServer') as acr_url
+FROM azure.container_registry.registries_credentials c
+INNER JOIN azure.container_registry.registries r
+ON c.registryName = r.registryName
+WHERE registryName = '{{ container_registry_name }}'
+AND resourceGroupName = '{{ resource_group_name }}'
+AND subscriptionId = '{{ subscription_id }}'

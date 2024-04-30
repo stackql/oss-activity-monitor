@@ -1,0 +1,25 @@
+/*+ create */
+INSERT INTO github.actions.variables(
+  owner,
+  repo,
+  data__name,
+  data__value
+)
+SELECT
+    '{{ github_repo_owner }}',
+    '{{ github_repo_name }}',
+    '{{ github_repo_variable_name }}',
+    '{{ acr_url }}'
+
+/*+ update */
+UPDATE github.actions.variables
+SET data__value = '{{ acr_url }}'
+WHERE name = '{{ github_repo_variable_name }}'
+AND owner = '{{ github_repo_owner }}'
+AND repo = '{{ github_repo_name }}'
+
+/*+ delete */
+DELETE FROM github.actions.variables
+WHERE owner = '{{ github_repo_owner }}' 
+AND repo = '{{ github_repo_name }}'
+AND name = '{{ github_repo_variable_name }}'
